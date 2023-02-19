@@ -1,0 +1,35 @@
+## Below SQL is simulating the union of 2 dataset (App & Web) into 1 table, and applied in Tableau
+
+## Formatting App Table and union with other tables
+## Align department Name 'Happy' as 'HH', as different tables have different names for this department
+## Comment and Translation is hidden in Oracle, need to format
+
+SELECT case WHEN "App_Feedback"."Department" = 'Happy' then 'HH' ELSE "App_Feedback"."Department" END AS "Department",
+  "App_Feedback"."OS" AS "OS",
+  "App_Feedback"."App_Date" AS "App_Date",
+  "App_Feedback"."Comment_Category" AS "Comment_Category",
+  "App_Feedback"."User" AS "User",
+  "App_Feedback"."Rating" AS "Rating",
+UTL_RAW.CAST_TO_VARCHAR2(DBMS_LOB.SUBSTR("App_Feedback"."Comment",2000,1)) as "Comment",
+lower(UTL_RAW.CAST_TO_VARCHAR2(DBMS_LOB.SUBSTR("App_Feedback"."Translation",2000,1))) as "Translation"
+
+FROM "Database"."App_Feedback" "App_Feedback"
+
+union all
+
+## Formatting Web Table and union with other tables
+## Align department Name 'Happy' as 'HH', as different tables have different names for this department
+## 'Rating range' before '31-JUL-21' was '0-10', in tableau, Rating range is 0-5, so the "Rating" needs to be divided by 2
+
+SELECT distinct
+case WHEN "Department" = 'Happy' then 'HH' ELSE "Department" END AS "Department",
+'Web_Name' AS "OS",
+"Web_Date",
+NULL as "Comment_Category",
+NULL as "User",
+
+case WHEN cast(Web_Date as date) <= '31-JUL-21' then "Rating"/2 when cast(Web_Date as date) >= '01-AUG-21' THEN "Rating" END as "Rating",
+To_char(DBMS_LOB.SUBSTR("Comment",2000,1)) as "Comment",
+To_char("Translation") as "Translation"
+
+FROM "Database"."Web_Feedback" "Web_Feedback" 
